@@ -1,6 +1,6 @@
 # ProjectHub
 
-ProjectHub is a full-stack (MERN) web application with GraphQL integration, designed to streamline project management by efficiently managing client details, tracking project progress, assigning tasks, and facilitating team collaboration.
+ProjectHub is a full-stack (MERN) web application with GraphQL integration, designed to streamline project management by efficiently managing client details, tracking project progress and facilitating team collaboration.
 
 ## Features
 
