@@ -25,7 +25,7 @@ ProjectHub is a full-stack (MERN) web application with GraphQL integration, desi
 
 ```bash
 # Example commands
-git clone https://github.com/your-username/ProjectHub.git
+git clone https://github.com/Ruchi0903/Project-Management.git
 cd ProjectHub
 npm install
 npm run start
