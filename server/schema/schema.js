@@ -90,16 +90,48 @@ const mutation = new GraphQLObjectType({
                 return client.save();
             }
         },
+
         // Delete a Client from the mongoose db (visible on compass)
         deleteClient: {
             type: ClientType,
             args: {
                 id: { type: GraphQLNonNull(GraphQLID) },
             },
-            resolve(parent, args) {
+            async resolve(parent, args) {
+                // Find and delete projs associated with the client
+                ProjectSchema.find({ clientId: args.id }).then((projects) => {
+                    projects.forEach((project) => {
+                        ProjectSchema.findOneAndDelete({ _id: project._id })
+                            .then(() => console.log(`Project ${project._id} deleted`))
+                            .catch((err) => console.log(`Error deleting project ${project._id}:  ${err}`))
+
+                    })
+                })
                 return ClientSchema.findOneAndDelete({ _id: args.id })
+                    .then((deletedClient) => {
+                        if (!deletedClient) {
+                            throw new Error(`Client with ID ${args.id} not found`);
+                        }
+                        console.log(`Client ${deletedClient._id} deleted`);
+                        return deletedClient;
+                    })
+                    .catch((err) => {
+                        console.error(`Error deleting client ${args.id}: ${err}`)
+                        throw err;
+                    });
             },
         },
+
+        // deleteClient: {
+        //     type: ClientType,
+        //     args: {
+        //         id: { type: GraphQLNonNull(GraphQLID) },
+        //     },
+        //     resolve(parent, args) {
+        //         return ClientSchema.findOneAndDelete({ _id: args.id })
+        //     },
+        // },
+
         // Add a project
         addProject: {
             type: ProjectType,
@@ -129,6 +161,49 @@ const mutation = new GraphQLObjectType({
 
                 return project.save();
             },
+        },
+        // Delete a project
+        deleteProject: {
+            type: ProjectType,
+            args: {
+                id: { type: GraphQLNonNull(GraphQLID) },
+            },
+            resolve(parent, args) {
+                return ProjectSchema.findOneAndDelete({ _id: args.id })
+            },
+        },
+        // Update a project
+        updateProject: {
+            type: ProjectType,
+            args: {
+                id: { type: GraphQLNonNull(GraphQLID) },
+                name: { type: GraphQLString },
+                description: { type: GraphQLString },
+                status: {
+                    type: new GraphQLEnumType({
+                        name: "ProjectStatusUpdate",
+                        values: {
+                            'new': { value: 'Not Started' },
+                            'progress': { value: 'In Progress' },
+                            'completed': { value: 'Completed' },
+                        },
+                    }),
+                },
+            },
+            resolve(parent, args) {
+                return ProjectSchema.findByIdAndUpdate(
+                    args.id,
+                    {
+                        $set: {
+                            name: args.name,
+                            description: args.description,
+                            status: args.status,
+                        },
+                    },
+                    // if the project asked is not there, it'll create it.
+                    { new: true }
+                );
+            }
         },
     },
 });
